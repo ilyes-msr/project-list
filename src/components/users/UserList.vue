@@ -8,7 +8,7 @@
     </div>
     <ul>
       <user-item
-        v-for="user in displayedUsers"
+        v-for="user in displayedItems"
         :key="user.id"
         :user-name="user.fullName"
         :id="user.id"
@@ -21,55 +21,18 @@
 <script setup>
 
 import UserItem from './UserItem.vue';
-import {ref, defineProps, computed, watch } from 'vue';
+
+import {defineProps, toRefs } from 'vue';
+import useSearch from '../../hooks/search';
+import useSort from '../../hooks/sort';
 
 const props = defineProps(['users']);
- 
-const enteredSearchTerm = ref(''),
-      activeSearchTerm = ref(''),
-      sorting = ref(null);
 
-const availableUsers = computed(() => {
-  let users = [];
-    if (activeSearchTerm.value) {
-      users = props.users.filter((usr) =>
-        usr.fullName.includes(activeSearchTerm.value)
-      );
-    } else if (props.users) {
-      users = props.users;
-    }
-    return users;
-});
+const {users} = toRefs(props);
 
-const displayedUsers = computed(() => {
-  if (!sorting.value) {
-    return availableUsers.value;
-  }
-  return availableUsers.value.slice().sort((u1, u2) => {
-    if (sorting.value === 'asc' && u1.fullName > u2.fullName) {
-      return 1;
-    } else if (sorting.value === 'asc') {
-      return -1;
-    } else if (sorting.value === 'desc' && u1.fullName > u2.fullName) {
-      return -1;
-    } else {
-      return 1;
-    }
-  });
-})
-const updateSearch = (val) => {
-  enteredSearchTerm.value = val;
-}
-const sort = (mode) => {
-  sorting.value = mode;
-}
-watch(enteredSearchTerm, (val) => {
-  setTimeout(() => {
-        if (val === enteredSearchTerm.value) {
-          activeSearchTerm.value = val;
-        }
-      }, 300);  
-})
+const {enteredSearchTerm, updateSearch, availableItems} = useSearch(users, "fullName");
+
+const {displayedItems, sort, sorting} = useSort(availableItems, "fullName");
 </script>
 
 <style scoped>
